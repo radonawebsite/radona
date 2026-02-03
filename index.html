@@ -2,122 +2,76 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OMNI-SCAN | Ultimate Security</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Scan | Anonymous Node</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Fira+Code&display=swap');
-        :root { --neon: #00ff9d; }
-        body { background: #08080c; color: #e2e8f0; font-family: 'Cairo', sans-serif; overflow-x: hidden; }
-        .terminal-font { font-family: 'Fira Code', monospace; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .scan-anim { border: 2px solid var(--neon); box-shadow: 0 0 20px var(--neon); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } }
-        .tab-active { border-bottom: 2px solid var(--neon); color: var(--neon); }
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
+        body { background: #000; color: #00ff41; font-family: 'Fira Code', monospace; }
+        .ghost-border { border: 1px solid #004411; }
+        .ghost-input { background: #000; border-bottom: 2px solid #004411; color: #00ff41; outline: none; transition: 0.5s; }
+        .ghost-input:focus { border-color: #00ff41; box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1); }
+        .scan-overlay { background: linear-gradient(0deg, rgba(0,255,65,0.05) 0%, transparent 100%); pointer-events: none; }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="scan-overlay fixed inset-0"></div>
 
-    <header class="p-4 glass sticky top-0 z-50 flex justify-between items-center">
-        <h1 class="text-xl font-bold tracking-tighter text-white">OMNI<span class="text-[#00ff9d]">SCAN</span></h1>
-        <div id="connectionStatus" class="flex items-center gap-2 text-[10px]">
-            <span class="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
-            SERVER READY
-        </div>
-    </header>
-
-    <main class="p-4 max-w-5xl mx-auto space-y-6">
-        
-        <section class="glass rounded-3xl p-6 shadow-2xl">
-            <div class="mb-4">
-                <span class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Target Analysis Unit</span>
-                <h2 class="text-2xl font-bold text-white">الفحص الخارق</h2>
+    <div class="w-full max-w-2xl ghost-border p-8 rounded-lg relative bg-black/80">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-xl font-bold tracking-[0.3em] uppercase">Ghost_Node</h1>
+                <p class="text-[10px] text-green-900 mt-1">IDENTITY: ANONYMOUS | ENCRYPTION: ACTIVE</p>
             </div>
-            
-            <div class="space-y-4">
-                <div class="relative">
-                    <input type="text" id="target" class="w-full bg-[#0d1117] border border-slate-800 rounded-2xl p-4 text-sm text-white focus:border-[#00ff9d] outline-none transition-all" placeholder="ادخل رابط، IP، أو ملف...">
-                </div>
-                <button onclick="executeGrandScan()" class="w-full bg-[#00ff9d] text-black font-bold py-4 rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-[#00ff9d22]">
-                    إطلاق الفحص الشامل 🚀
-                </button>
-            </div>
-        </section>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="glass rounded-3xl p-6 min-h-[300px]">
-                <h3 class="text-xs font-bold text-slate-500 mb-4 uppercase">النتائج المباشرة (Live Feed)</h3>
-                <div id="resultsFeed" class="terminal-font text-xs space-y-2 h-64 overflow-y-auto pr-2">
-                    <div class="text-slate-600">> في انتظار الأوامر...</div>
-                </div>
-            </div>
-
-            <div class="glass rounded-3xl p-6">
-                <h3 class="text-xs font-bold text-slate-500 mb-4 uppercase">أمن الجهاز المتصل</h3>
-                <div class="space-y-6">
-                    <div class="flex justify-between items-end">
-                        <span class="text-sm">مستوى التهديد</span>
-                        <span id="threatLevel" class="text-3xl font-bold text-green-500">0%</span>
-                    </div>
-                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                        <div id="threatBar" class="bg-green-500 h-full w-0 transition-all duration-1000"></div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-[10px]">
-                        <div class="p-2 border border-slate-800 rounded-lg">WiFi: SECURE</div>
-                        <div class="p-2 border border-slate-800 rounded-lg">SSL: ACTIVE</div>
-                    </div>
-                </div>
+            <div class="text-[10px] text-green-700 animate-pulse text-left">
+                [NODE_STABLE]<br>[SECURE_CHANNEL]
             </div>
         </div>
-    </main>
+
+        <div class="space-y-8">
+            <div class="relative">
+                <label class="text-[10px] text-green-900 absolute -top-4">TARGET_PATH</label>
+                <input type="text" id="target" class="ghost-input w-full p-3 text-lg" placeholder=">>> ENTER_DATA_TO_SCAN">
+            </div>
+
+            <button onclick="executeAnonymousScan()" class="w-full border border-green-500/30 py-4 hover:bg-green-500 hover:text-black transition-all duration-500 font-bold tracking-[0.5em] uppercase">
+                Execute_Transmit
+            </button>
+        </div>
+
+        <div class="mt-10 h-40 overflow-y-auto text-[11px] space-y-1 text-green-700 border-t border-green-900/30 pt-4" id="console">
+            <div>> Waiting for anonymous input...</div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // تم حذف الأسماء والمعلومات التعريفية
         const firebaseConfig = { databaseURL: "https://realtime-database-df34b-default-rtdb.firebaseio.com/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        window.executeGrandScan = async function() {
+        window.executeAnonymousScan = function() {
             const target = document.getElementById('target').value;
-            const feed = document.getElementById('resultsFeed');
+            const console = document.getElementById('console');
+            
             if(!target) return;
 
-            feed.innerHTML = `<div class="text-[#00ff9d] animate-pulse font-bold">[!] جاري تشغيل المحرك الخارق لـ ${target}...</div>`;
-            
-            // محاكاة الفحص العظيم
-            const scanSteps = [
-                "فحص بروتوكولات الشبكة...",
-                "تحليل شهادات التشفير (SSL/TLS)...",
-                "البحث عن تسريبات في قواعد البيانات العالمية...",
-                "فحص المنافذ المفتوحة عبر Kali Node...",
-                "تحليل السلوك البرمجي (Heuristic Analysis)..."
-            ];
+            // تشفير البيانات بـ Base64 قبل إرسالها لـ Firebase لمزيد من الخصوصية
+            const encodedData = btoa(unescape(encodeURIComponent(target)));
 
-            for(let step of scanSteps) {
-                await new Promise(r => setTimeout(r, 1000));
-                feed.innerHTML += `<div class="text-slate-400">> ${step} <span class="text-blue-500">OK</span></div>`;
-                feed.scrollTop = feed.scrollHeight;
-            }
+            push(ref(db, 'ghost_tx'), {
+                payload: encodedData,
+                time: Date.now(),
+                origin: "HIDDEN_NODE"
+            });
 
-            // إرسال لـ Firebase ليقوم جهازك في المنزل بالتفاعل
-            push(ref(db, 'master_scans'), { target, device: navigator.userAgent, time: Date.now() });
-            
-            // تحديث مؤشر الخطر عشوائياً (كمثال)
-            const danger = Math.floor(Math.random() * 100);
-            updateThreat(danger);
-        }
-
-        function updateThreat(val) {
-            const level = document.getElementById('threatLevel');
-            const bar = document.getElementById('threatBar');
-            level.innerText = val + "%";
-            bar.style.width = val + "%";
-            if(val > 50) {
-                level.className = "text-3xl font-bold text-red-500";
-                bar.className = "bg-red-500 h-full transition-all duration-1000";
-            }
+            console.innerHTML += `<div class="text-white">> DATA_ENCODED: ${encodedData.substring(0, 15)}...</div>`;
+            console.innerHTML += `<div class="text-green-500">> TRANSMISSION_COMPLETE [SECURE]</div>`;
+            document.getElementById('target').value = '';
+            console.scrollTop = console.scrollHeight;
         }
     </script>
 </body>
