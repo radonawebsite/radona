@@ -1,1 +1,60 @@
-<!DOCTYPE html><html><head><title>My Website</title></head><body><h1>Welcome to Radona Website</h1><p>Site is working!</p></body></html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Radona Firebase Connection</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: inline-block; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 200px; }
+        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #data-list { margin-top: 20px; text-align: right; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>ارسل بيانات إلى Firebase</h2>
+        <input type="text" id="userInput" placeholder="اكتب شيئاً هنا...">
+        <button onclick="sendData()">إرسال</button>
+        
+        <div id="data-list">
+            <h3>البيانات المرسلة:</h3>
+            <ul id="items"></ul>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // إعدادات Firebase الخاصة بك
+        const firebaseConfig = {
+            databaseURL: "https://realtime-database-df34b-default-rtdb.firebaseio.com/"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // دالة إرسال البيانات
+        window.sendData = function() {
+            const val = document.getElementById('userInput').value;
+            if(val) {
+                push(ref(db, 'messages'), { text: val });
+                document.getElementById('userInput').value = '';
+            }
+        }
+
+        // دالة عرض البيانات في الوقت الفعلي
+        onValue(ref(db, 'messages'), (snapshot) => {
+            const list = document.getElementById('items');
+            list.innerHTML = '';
+            snapshot.forEach((child) => {
+                const li = document.createElement('li');
+                li.textContent = child.val().text;
+                list.appendChild(li);
+            });
+        });
+    </script>
+</body>
+</html>
