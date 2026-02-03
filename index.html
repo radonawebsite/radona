@@ -2,72 +2,123 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radona Real-time Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OMNI-SCAN | Ultimate Security</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e5ddd5; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .message { background: white; padding: 10px 15px; border-radius: 15px; max-width: 70%; width: fit-content; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
-        .message.mine { align-self: flex-start; background: #dcf8c6; }
-        .input-area { background: #f0f0f0; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #ccc; }
-        input { flex: 1; padding: 12px; border: none; border-radius: 25px; outline: none; }
-        button { background: #128c7e; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Fira+Code&display=swap');
+        :root { --neon: #00ff9d; }
+        body { background: #08080c; color: #e2e8f0; font-family: 'Cairo', sans-serif; overflow-x: hidden; }
+        .terminal-font { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .scan-anim { border: 2px solid var(--neon); box-shadow: 0 0 20px var(--neon); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } }
+        .tab-active { border-bottom: 2px solid var(--neon); color: var(--neon); }
     </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-    <div id="chat-container">
+    <header class="p-4 glass sticky top-0 z-50 flex justify-between items-center">
+        <h1 class="text-xl font-bold tracking-tighter text-white">OMNI<span class="text-[#00ff9d]">SCAN</span></h1>
+        <div id="connectionStatus" class="flex items-center gap-2 text-[10px]">
+            <span class="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
+            SERVER READY
         </div>
+    </header>
 
-    <div class="input-area">
-        <input type="text" id="msgInput" placeholder="اكتب رسالتك هنا...">
-        <button onclick="sendMsg()">إرسال</button>
-    </div>
+    <main class="p-4 max-w-5xl mx-auto space-y-6">
+        
+        <section class="glass rounded-3xl p-6 shadow-2xl">
+            <div class="mb-4">
+                <span class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Target Analysis Unit</span>
+                <h2 class="text-2xl font-bold text-white">الفحص الخارق</h2>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="relative">
+                    <input type="text" id="target" class="w-full bg-[#0d1117] border border-slate-800 rounded-2xl p-4 text-sm text-white focus:border-[#00ff9d] outline-none transition-all" placeholder="ادخل رابط، IP، أو ملف...">
+                </div>
+                <button onclick="executeGrandScan()" class="w-full bg-[#00ff9d] text-black font-bold py-4 rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-[#00ff9d22]">
+                    إطلاق الفحص الشامل 🚀
+                </button>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass rounded-3xl p-6 min-h-[300px]">
+                <h3 class="text-xs font-bold text-slate-500 mb-4 uppercase">النتائج المباشرة (Live Feed)</h3>
+                <div id="resultsFeed" class="terminal-font text-xs space-y-2 h-64 overflow-y-auto pr-2">
+                    <div class="text-slate-600">> في انتظار الأوامر...</div>
+                </div>
+            </div>
+
+            <div class="glass rounded-3xl p-6">
+                <h3 class="text-xs font-bold text-slate-500 mb-4 uppercase">أمن الجهاز المتصل</h3>
+                <div class="space-y-6">
+                    <div class="flex justify-between items-end">
+                        <span class="text-sm">مستوى التهديد</span>
+                        <span id="threatLevel" class="text-3xl font-bold text-green-500">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="threatBar" class="bg-green-500 h-full w-0 transition-all duration-1000"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[10px]">
+                        <div class="p-2 border border-slate-800 rounded-lg">WiFi: SECURE</div>
+                        <div class="p-2 border border-slate-800 rounded-lg">SSL: ACTIVE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        const firebaseConfig = {
-            databaseURL: "https://realtime-database-df34b-default-rtdb.firebaseio.com/"
-        };
-
+        const firebaseConfig = { databaseURL: "https://realtime-database-df34b-default-rtdb.firebaseio.com/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const chatRef = ref(db, 'chat');
 
-        // إرسال الرسالة
-        window.sendMsg = function() {
-            const input = document.getElementById('msgInput');
-            const text = input.value.trim();
-            if(text !== "") {
-                push(chatRef, {
-                    text: text,
-                    time: serverTimestamp(),
-                    sender: navigator.userAgent.slice(0,10) // تمييز بسيط بين الأجهزة
-                });
-                input.value = '';
+        window.executeGrandScan = async function() {
+            const target = document.getElementById('target').value;
+            const feed = document.getElementById('resultsFeed');
+            if(!target) return;
+
+            feed.innerHTML = `<div class="text-[#00ff9d] animate-pulse font-bold">[!] جاري تشغيل المحرك الخارق لـ ${target}...</div>`;
+            
+            // محاكاة الفحص العظيم
+            const scanSteps = [
+                "فحص بروتوكولات الشبكة...",
+                "تحليل شهادات التشفير (SSL/TLS)...",
+                "البحث عن تسريبات في قواعد البيانات العالمية...",
+                "فحص المنافذ المفتوحة عبر Kali Node...",
+                "تحليل السلوك البرمجي (Heuristic Analysis)..."
+            ];
+
+            for(let step of scanSteps) {
+                await new Promise(r => setTimeout(r, 1000));
+                feed.innerHTML += `<div class="text-slate-400">> ${step} <span class="text-blue-500">OK</span></div>`;
+                feed.scrollTop = feed.scrollHeight;
             }
+
+            // إرسال لـ Firebase ليقوم جهازك في المنزل بالتفاعل
+            push(ref(db, 'master_scans'), { target, device: navigator.userAgent, time: Date.now() });
+            
+            // تحديث مؤشر الخطر عشوائياً (كمثال)
+            const danger = Math.floor(Math.random() * 100);
+            updateThreat(danger);
         }
 
-        // استقبال الرسائل وتحديث الشاشة فوراً
-        onValue(chatRef, (snapshot) => {
-            const container = document.getElementById('chat-container');
-            container.innerHTML = '';
-            snapshot.forEach((child) => {
-                const data = child.val();
-                const div = document.createElement('div');
-                div.className = 'message';
-                div.textContent = data.text;
-                container.appendChild(div);
-            });
-            container.scrollTop = container.scrollHeight; // النزول لآخر رسالة
-        });
-
-        // إرسال عند ضغط Enter
-        document.getElementById('msgInput').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') sendMsg();
-        });
+        function updateThreat(val) {
+            const level = document.getElementById('threatLevel');
+            const bar = document.getElementById('threatBar');
+            level.innerText = val + "%";
+            bar.style.width = val + "%";
+            if(val > 50) {
+                level.className = "text-3xl font-bold text-red-500";
+                bar.className = "bg-red-500 h-full transition-all duration-1000";
+            }
+        }
     </script>
 </body>
 </html>
