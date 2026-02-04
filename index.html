@@ -3,75 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghost Scan | Anonymous Node</title>
+    <title>Battery Health Analyzer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
-        body { background: #000; color: #00ff41; font-family: 'Fira Code', monospace; }
-        .ghost-border { border: 1px solid #004411; }
-        .ghost-input { background: #000; border-bottom: 2px solid #004411; color: #00ff41; outline: none; transition: 0.5s; }
-        .ghost-input:focus { border-color: #00ff41; box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1); }
-        .scan-overlay { background: linear-gradient(0deg, rgba(0,255,65,0.05) 0%, transparent 100%); pointer-events: none; }
+        body { background: #000; color: #00ff41; font-family: monospace; }
+        .drop-zone { border: 2px dashed #004411; transition: 0.3s; }
+        .drop-zone:hover { border-color: #00ff41; background: rgba(0, 255, 65, 0.05); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="scan-overlay fixed inset-0"></div>
+<body class="min-h-screen flex flex-col items-center p-6">
 
-    <div class="w-full max-w-2xl ghost-border p-8 rounded-lg relative bg-black/80">
-        <div class="flex justify-between items-center mb-10">
-            <div>
-                <h1 class="text-xl font-bold tracking-[0.3em] uppercase">Ghost_Node</h1>
-                <p class="text-[10px] text-green-900 mt-1">IDENTITY: ANONYMOUS | ENCRYPTION: ACTIVE</p>
+    <div class="max-w-xl w-full space-y-8 mt-10">
+        <div class="text-center">
+            <h1 class="text-2xl font-bold tracking-tighter uppercase border-b border-green-900 pb-2">Battery_Health_Scanner</h1>
+            <p class="text-[10px] mt-2 text-green-700">حلل ملف الـ Analytics للحصول على الصحة الحقيقية</p>
+        </div>
+
+        <div id="dropZone" class="drop-zone rounded-xl p-10 text-center cursor-pointer">
+            <p id="status">اسحب ملف الـ Analytics هنا أو اضغط للاختيار</p>
+            <input type="file" id="fileInput" class="hidden" accept=".ips, .txt">
+        </div>
+
+        <div id="resultBox" class="hidden space-y-4 bg-green-950/10 p-6 rounded-lg border border-green-900">
+            <div class="flex justify-between border-b border-green-900 pb-2">
+                <span>الصحة الفعلية (Actual Health):</span>
+                <span id="healthVal" class="text-white font-bold">--</span>
             </div>
-            <div class="text-[10px] text-green-700 animate-pulse text-left">
-                [NODE_STABLE]<br>[SECURE_CHANNEL]
+            <div class="flex justify-between">
+                <span>دورات الشحن (Cycle Count):</span>
+                <span id="cycleVal" class="text-white font-bold">--</span>
             </div>
         </div>
 
-        <div class="space-y-8">
-            <div class="relative">
-                <label class="text-[10px] text-green-900 absolute -top-4">TARGET_PATH</label>
-                <input type="text" id="target" class="ghost-input w-full p-3 text-lg" placeholder=">>> ENTER_DATA_TO_SCAN">
-            </div>
-
-            <button onclick="executeAnonymousScan()" class="w-full border border-green-500/30 py-4 hover:bg-green-500 hover:text-black transition-all duration-500 font-bold tracking-[0.5em] uppercase">
-                Execute_Transmit
-            </button>
-        </div>
-
-        <div class="mt-10 h-40 overflow-y-auto text-[11px] space-y-1 text-green-700 border-t border-green-900/30 pt-4" id="console">
-            <div>> Waiting for anonymous input...</div>
+        <div class="text-[11px] text-green-900 space-y-1">
+            <p>كيف تحصل على الملف؟</p>
+            <p>1. الإعدادات > الخصوصية والأمن > التحليلات والتحسينات.</p>
+            <p>2. بيانات التحليلات > اختر ملف يبدأ بـ Analytics-2026...</p>
+            <p>3. شارك الملف وارفع هنا.</p>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
 
-        // تم حذف الأسماء والمعلومات التعريفية
-        const firebaseConfig = { databaseURL: "https://realtime-database-df34b-default-rtdb.firebaseio.com/" };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        dropZone.onclick = () => fileInput.click();
 
-        window.executeAnonymousScan = function() {
-            const target = document.getElementById('target').value;
-            const console = document.getElementById('console');
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            document.getElementById('status').innerText = "جاري التحليل الرقمي...";
             
-            if(!target) return;
+            reader.onload = function(e) {
+                const content = e.target.result;
+                
+                // البحث عن القيم داخل ملف الايفون المعقد
+                const healthMatch = content.match(/<key>com\.apple\.power\.battery\.MaximumCapacityPercent<\/key>\s*<integer>(\d+)<\/integer>/);
+                const cycleMatch = content.match(/<key>com\.apple\.power\.battery\.CycleCount<\/key>\s*<integer>(\d+)<\/integer>/);
 
-            // تشفير البيانات بـ Base64 قبل إرسالها لـ Firebase لمزيد من الخصوصية
-            const encodedData = btoa(unescape(encodeURIComponent(target)));
-
-            push(ref(db, 'ghost_tx'), {
-                payload: encodedData,
-                time: Date.now(),
-                origin: "HIDDEN_NODE"
-            });
-
-            console.innerHTML += `<div class="text-white">> DATA_ENCODED: ${encodedData.substring(0, 15)}...</div>`;
-            console.innerHTML += `<div class="text-green-500">> TRANSMISSION_COMPLETE [SECURE]</div>`;
-            document.getElementById('target').value = '';
-            console.scrollTop = console.scrollHeight;
+                if (healthMatch || cycleMatch) {
+                    document.getElementById('resultBox').classList.remove('hidden');
+                    document.getElementById('healthVal').innerText = (healthMatch ? healthMatch[1] : "N/A") + "%";
+                    document.getElementById('cycleVal').innerText = (cycleMatch ? cycleMatch[1] : "N/A");
+                    document.getElementById('status').innerText = "تم التحليل بنجاح";
+                } else {
+                    alert("لم يتم العثور على بيانات البطارية في هذا الملف. تأكد من اختيار ملف Analytics صحيح.");
+                }
+            };
+            reader.readAsText(file);
         }
     </script>
 </body>
