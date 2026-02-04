@@ -1,31 +1,52 @@
-import os
-import time
-import json
-import requests
-from firebase_admin import credentials, db, initialize_app
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>AD-HUB | موزع الحسابات الموثقة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: #f1f5f9; font-family: 'Cairo', sans-serif; }
+        .card { background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; }
+        .badge { background: #10b981; color: white; padding: 2px 8px; border-radius: 99px; font-size: 10px; }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-lg mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-2xl font-bold text-blue-400 italic italic">AD-HUB MOROCCO 🇲🇦</h1>
+            <p class="text-xs text-slate-400 mt-1">حسابات إعلانية قوية وموثقة - تسليم فوري</p>
+        </header>
 
-# 1. إعدادات Firebase (ضع ملف الـ JSON الخاص بك هنا)
-cred = credentials.Certificate("serviceAccountKey.json")
-initialize_app(cred, {'databaseURL': 'https://realtime-database-df34b-default-rtdb.firebaseio.com/'})
+        <div class="space-y-4">
+            <div class="card p-5 rounded-2xl flex justify-between items-center">
+                <div>
+                    <span class="badge">الأكثر طلباً</span>
+                    <h3 class="font-bold mt-1">حساب FB قديم (2017) + ID Verified</h3>
+                    <p class="text-[10px] text-slate-400">مثالي لتجاوز حظر الإعلانات</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-xl font-black text-white">250 DH</div>
+                    <button onclick="order('FB_Old')" class="mt-2 bg-blue-600 text-[10px] px-4 py-2 rounded-lg font-bold">شراء</button>
+                </div>
+            </div>
 
-def run_scanner(target_list):
-    print("[+] Starting Automated Hunter...")
-    # تشغيل nuclei على قائمة مواقع وحفظ النتائج في ملف json
-    os.system(f"nuclei -list {target_list} -severity medium,high,critical -json -o results.json")
-    
-    if os.path.exists("results.json"):
-        with open("results.json", "r") as f:
-            for line in f:
-                data = json.loads(line)
-                # إرسال الثغرة المكتشفة إلى Firebase
-                ref = db.reference('findings')
-                ref.push({
-                    'domain': data['host'],
-                    'vuln_type': data['info']['name'],
-                    'severity': data['info']['severity'],
-                    'time': data['timestamp']
-                })
-        print("[!] New Vulnerabilities uploaded to your Dashboard!")
+            <div class="card p-5 rounded-2xl flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold">حساب TikTok Ads (UK/USA)</h3>
+                    <p class="text-[10px] text-slate-400">مفتوح فيه ميزة الـ Targeting العالمي</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-xl font-black text-white">150 DH</div>
+                    <button onclick="order('TT_Ads')" class="mt-2 bg-blue-600 text-[10px] px-4 py-2 rounded-lg font-bold">شراء</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-# ابدأ الفحص بضغطة زر
-run_scanner("targets.txt")
+    <script>
+        function order(type) {
+            window.location.href = `https://wa.me/2126XXXXXXXX?text=بغيت_حساب_${type}`;
+        }
+    </script>
+</body>
+</html>
