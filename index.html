@@ -1,79 +1,31 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Battery Health Analyzer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #000; color: #00ff41; font-family: monospace; }
-        .drop-zone { border: 2px dashed #004411; transition: 0.3s; }
-        .drop-zone:hover { border-color: #00ff41; background: rgba(0, 255, 65, 0.05); }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col items-center p-6">
+import os
+import time
+import json
+import requests
+from firebase_admin import credentials, db, initialize_app
 
-    <div class="max-w-xl w-full space-y-8 mt-10">
-        <div class="text-center">
-            <h1 class="text-2xl font-bold tracking-tighter uppercase border-b border-green-900 pb-2">Battery_Health_Scanner</h1>
-            <p class="text-[10px] mt-2 text-green-700">حلل ملف الـ Analytics للحصول على الصحة الحقيقية</p>
-        </div>
+# 1. إعدادات Firebase (ضع ملف الـ JSON الخاص بك هنا)
+cred = credentials.Certificate("serviceAccountKey.json")
+initialize_app(cred, {'databaseURL': 'https://realtime-database-df34b-default-rtdb.firebaseio.com/'})
 
-        <div id="dropZone" class="drop-zone rounded-xl p-10 text-center cursor-pointer">
-            <p id="status">اسحب ملف الـ Analytics هنا أو اضغط للاختيار</p>
-            <input type="file" id="fileInput" class="hidden" accept=".ips, .txt">
-        </div>
+def run_scanner(target_list):
+    print("[+] Starting Automated Hunter...")
+    # تشغيل nuclei على قائمة مواقع وحفظ النتائج في ملف json
+    os.system(f"nuclei -list {target_list} -severity medium,high,critical -json -o results.json")
+    
+    if os.path.exists("results.json"):
+        with open("results.json", "r") as f:
+            for line in f:
+                data = json.loads(line)
+                # إرسال الثغرة المكتشفة إلى Firebase
+                ref = db.reference('findings')
+                ref.push({
+                    'domain': data['host'],
+                    'vuln_type': data['info']['name'],
+                    'severity': data['info']['severity'],
+                    'time': data['timestamp']
+                })
+        print("[!] New Vulnerabilities uploaded to your Dashboard!")
 
-        <div id="resultBox" class="hidden space-y-4 bg-green-950/10 p-6 rounded-lg border border-green-900">
-            <div class="flex justify-between border-b border-green-900 pb-2">
-                <span>الصحة الفعلية (Actual Health):</span>
-                <span id="healthVal" class="text-white font-bold">--</span>
-            </div>
-            <div class="flex justify-between">
-                <span>دورات الشحن (Cycle Count):</span>
-                <span id="cycleVal" class="text-white font-bold">--</span>
-            </div>
-        </div>
-
-        <div class="text-[11px] text-green-900 space-y-1">
-            <p>كيف تحصل على الملف؟</p>
-            <p>1. الإعدادات > الخصوصية والأمن > التحليلات والتحسينات.</p>
-            <p>2. بيانات التحليلات > اختر ملف يبدأ بـ Analytics-2026...</p>
-            <p>3. شارك الملف وارفع هنا.</p>
-        </div>
-    </div>
-
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const dropZone = document.getElementById('dropZone');
-
-        dropZone.onclick = () => fileInput.click();
-
-        fileInput.onchange = (e) => handleFile(e.target.files[0]);
-
-        function handleFile(file) {
-            if (!file) return;
-            const reader = new FileReader();
-            document.getElementById('status').innerText = "جاري التحليل الرقمي...";
-            
-            reader.onload = function(e) {
-                const content = e.target.result;
-                
-                // البحث عن القيم داخل ملف الايفون المعقد
-                const healthMatch = content.match(/<key>com\.apple\.power\.battery\.MaximumCapacityPercent<\/key>\s*<integer>(\d+)<\/integer>/);
-                const cycleMatch = content.match(/<key>com\.apple\.power\.battery\.CycleCount<\/key>\s*<integer>(\d+)<\/integer>/);
-
-                if (healthMatch || cycleMatch) {
-                    document.getElementById('resultBox').classList.remove('hidden');
-                    document.getElementById('healthVal').innerText = (healthMatch ? healthMatch[1] : "N/A") + "%";
-                    document.getElementById('cycleVal').innerText = (cycleMatch ? cycleMatch[1] : "N/A");
-                    document.getElementById('status').innerText = "تم التحليل بنجاح";
-                } else {
-                    alert("لم يتم العثور على بيانات البطارية في هذا الملف. تأكد من اختيار ملف Analytics صحيح.");
-                }
-            };
-            reader.readAsText(file);
-        }
-    </script>
-</body>
-</html>
+# ابدأ الفحص بضغطة زر
+run_scanner("targets.txt")
